@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GetWE - Safer Social Media</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --color-primary: #7c3aed;
+      --color-primary-dark: #6d28d9;
+      --color-secondary-dark: #1e1e2f;
+      --color-secondary-purple: #a855f7;
+      --color-secondary-peach: #f5d0a9;
+      --color-accent: #22d3ee;
+      --color-white: #ffffff;
+      --color-gray: #d1d5db;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    @layer utilities {
+      .bg-primary { background-color: var(--color-primary); }
+      .text-primary { color: var(--color-primary); }
+      .bg-primary-dark { background-color: var(--color-primary-dark); }
+      .bg-secondary-dark { background-color: var(--color-secondary-dark); }
+      .text-secondary-dark { color: var(--color-secondary-dark); }
+      .bg-secondary-purple { background-color: var(--color-secondary-purple); }
+      .text-secondary-purple { color: var(--color-secondary-purple); }
+      .bg-secondary-peach { background-color: var(--color-secondary-peach); }
+      .text-accent { color: var(--color-accent); }
+      .border-accent { border-color: var(--color-accent); }
+      .hover-scale:hover { transform: scale(1.03); }
+      .shadow-glow { box-shadow: 0 4px 20px rgba(124, 58, 237, 0.2); }
+      .shadow-glow:hover { box-shadow: 0 6px 25px rgba(124, 58, 237, 0.3); }
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-primary);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-primary-dark);
+    }
+  </style>
+</head>
+<body class="text-secondary-dark min-h-screen flex flex-col">
+  <div class="flex flex-1 min-h-0">
+    <!-- Sidebar Navigation -->
+    <aside class="hidden md:flex flex-col w-64 bg-secondary-dark text-white p-6 space-y-6">
+      <div class="flex items-center space-x-3">
+        <i class="fas fa-shield-alt text-3xl text-accent"></i>
+        <div class="text-2xl font-bold">GetWE</div>
+      </div>
+      <div class="flex items-center space-x-3 p-3 bg-primary-dark rounded-lg">
+        <img src="https://randomuser.me/api/portraits/men/99.jpg" alt="User avatar" class="w-12 h-12 rounded-full object-cover" />
+        <div>
+          <p class="font-semibold">Current User</p>
+          <p class="text-sm text-gray-400">@currentuser</p>
+        </div>
+      </div>
+      <nav class="flex flex-col space-y-4 text-lg">
+        <a href="#" class="flex items-center space-x-2 hover:text-accent transition-colors"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="#" class="flex items-center space-x-2 hover:text-accent transition-colors"><i class="fas fa-compass"></i><span>Explore</span></a>
+        <a href="#" class="flex items-center space-x-2 hover:text-accent transition-colors"><i class="fas fa-bell"></i><span>Notifications</span></a>
+        <a href="#" class="flex items-center space-x-2 hover:text-accent transition-colors"><i class="fas fa-envelope"></i><span>Messages</span></a>
+        <a href="#" class="flex items-center space-x-2 hover:text-accent transition-colors" id="open-profile-btn"><i class="fas fa-user"></i><span>Profile</span></a>
+        <a href="#" class="flex items-center space-x-2 hover:text-accent transition-colors"><i class="fas fa-cog"></i><span>Settings</span></a>
+      </nav>
+      <button id="open-post-creation-btn" class="w-full bg-primary hover:bg-primary-dark transition-colors rounded-full py-2 font-semibold shadow-glow">
+        Create Post
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col overflow-auto">
+      <!-- Top Navigation for Mobile -->
+      <header class="md:hidden flex items-center justify-between bg-secondary-dark text-white p-4">
+        <div class="flex items-center space-x-3">
+          <i class="fas fa-shield-alt text-2xl text-accent"></i>
+          <div class="text-xl font-bold">SocialDetect</div>
+        </div>
+        <button aria-label="Open menu" class="text-white text-2xl">
+          <i class="fas fa-bars"></i>
+        </button>
+      </header>
+
+      <!-- Feed Tabs -->
+      <div class="flex border-b border-gray-300">
+        <button id="tab-for-you" class="flex-1 py-3 text-center font-semibold border-b-4 border-primary text-primary">
+          For You
+        </button>
+        <button id="tab-following" class="flex-1 py-3 text-center font-semibold border-b-4 border-transparent hover:border-accent hover:text-accent transition-colors">
+          Following
+        </button>
+      </div>
+
+      <!-- Feed Content -->
+      <section id="feed" class="flex-1 overflow-auto p-4 sm:p-6 space-y-6">
+        <div>
+          <h3 class="text-lg font-semibold mb-4 text-secondary-dark">Create a New Post</h3>
+          <div id="newPostForm" class="space-y-4">
+            <textarea id="postContent" placeholder="What's on your mind?" rows="3" class="w-full border border-gray-300 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"></textarea>
+            <button id="submitPostBtn" class="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-6 rounded-lg transition-colors shadow-glow">Post</button>
+          </div>
+        </div>
+        <div id="newPosts" class="space-y-6"></div>
+        <!-- Sample Posts will be inserted here -->
+      </section>
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside class="hidden lg:flex flex-col w-80 bg-white border-l border-gray-200 p-6 space-y-6">
+      <h2 class="text-lg font-semibold text-secondary-dark">Who to Follow</h2>
+      <ul id="user-suggestions" class="space-y-4">
+        <li class="flex items-center space-x-4 hover:bg-gray-100 p-2 rounded-lg transition-colors">
+          <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User avatar" class="w-10 h-10 rounded-full object-cover" />
+          <div class="flex-1">
+            <p class="font-semibold text-secondary-dark">Michael Lee</p>
+            <p class="text-sm text-gray-500">@michaellee</p>
+          </div>
+          <button class="text-sm text-primary hover:text-primary-dark follow-btn font-semibold">Follow</button>
+        </li>
+        <li class="flex items-center space-x-4 hover:bg-gray-100 p-2 rounded-lg transition-colors">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User avatar" class="w-10 h-10 rounded-full object-cover" />
+          <div class="flex-1">
+            <p class="font-semibold text-secondary-dark">Sara Kim</p>
+            <p class="text-sm text-gray-500">@sarakim</p>
+          </div>
+          <button class="text-sm text-primary hover:text-primary-dark follow-btn font-semibold">Follow</button>
+        </li>
+        <li class="flex items-center space-x-4 hover:bg-gray-100 p-2 rounded-lg transition-colors">
+          <img src="https://randomuser.me/api/portraits/men/56.jpg" alt="User avatar" class="w-10 h-10 rounded-full object-cover" />
+          <div class="flex-1">
+            <p class="font-semibold text-secondary-dark">David Park</p>
+            <p class="text-sm text-gray-500">@davidpark</p>
+          </div>
+          <button class="text-sm text-primary hover:text-primary-dark follow-btn font-semibold">Follow</button>
+        </li>
+        <li class="flex items-center space-x-4 hover:bg-gray-100 p-2 rounded-lg transition-colors">
+          <img src="https://randomuser.me/api/portraits/women/22.jpg" alt="User avatar" class="w-10 h-10 rounded-full object-cover" />
+          <div class="flex-1">
+            <p class="font-semibold text-secondary-dark">Emily Chen</p>
+            <p class="text-sm text-gray-500">@emilychen</p>
+          </div>
+          <button class="text-sm text-primary hover:text-primary-dark follow-btn font-semibold">Follow</button>
+        </li>
+      </ul>
+      <h2 class="text-lg font-semibold text-secondary-dark pt-4">Trending Topics</h2>
+      <ul class="space-y-3">
+        <li class="hover:text-primary transition-colors cursor-pointer">
+          <p class="font-medium">#HateSpeechAwareness</p>
+          <p class="text-sm text-gray-500">12.3K posts</p>
+        </li>
+        <li class="hover:text-primary transition-colors cursor-pointer">
+          <p class="font-medium">#AIforGood</p>
+          <p class="text-sm text-gray-500">8.7K posts</p>
+        </li>
+        <li class="hover:text-primary transition-colors cursor-pointer">
+          <p class="font-medium">#SocialMediaSafety</p>
+          <p class="text-sm text-gray-500">5.2K posts</p>
+        </li>
+        <li class="hover:text-primary transition-colors cursor-pointer">
+          <p class="font-medium">#DigitalEthics</p>
+          <p class="text-sm text-gray-500">3.9K posts</p>
+        </li>
+      </ul>
+    </aside>
+  </div>
+
+  <!-- User Profile Modal -->
+  <div id="user-profile-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" aria-modal="true" role="dialog" aria-labelledby="user-profile-title">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 overflow-auto max-h-[90vh]">
+      <header class="flex items-center space-x-4 mb-6">
+        <img src="https://randomuser.me/api/portraits/men/99.jpg" alt="User avatar" class="w-16 h-16 rounded-full object-cover" />
+        <div>
+          <h2 id="user-profile-title" class="text-2xl font-semibold text-secondary-dark">Current User</h2>
+          <p class="text-gray-500">@currentuser</p>
+        </div>
+        <button id="close-profile-btn" class="ml-auto text-gray-500 hover:text-primary-dark" aria-label="Close profile">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </header>
+      <section class="mb-6">
+        <div class="flex justify-around text-center text-secondary-dark">
+          <div>
+            <p class="font-bold text-lg">245</p>
+            <p class="text-sm text-gray-500">Followers</p>
+          </div>
+          <div>
+            <p class="font-bold text-lg">320</p>
+            <p class="text-sm text-gray-500">Following</p>
+          </div>
+          <div>
+            <p class="font-bold text-lg">58</p>
+            <p class="text-sm text-gray-500">Posts</p>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h3 class="font-semibold text-lg mb-4 text-secondary-dark">Recent Posts</h3>
+        <ul class="space-y-4 max-h-64 overflow-auto">
+          <li class="border border-gray-200 rounded p-3">
+            <p>Working on a new AI project for safer social media! #AIforGood</p>
+            <p class="text-xs text-gray-400 mt-1">2 days ago</p>
+          </li>
+          <li class="border border-gray-200 rounded p-3">
+            <p>Just attended a conference on digital ethics. So insightful!</p>
+            <p class="text-xs text-gray-400 mt-1">5 days ago</p>
+          </li>
+          <li class="border border-gray-200 rounded p-3">
+            <p>Collaborating on a hate speech detection tool. Excited!</p>
+            <p class="text-xs text-gray-400 mt-1">1 week ago</p>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-secondary-dark text-white flex justify-around items-center py-3 md:hidden shadow-lg" aria-label="Mobile navigation">
+    <button aria-label="Home" class="flex flex-col items-center text-sm hover:text-accent transition-colors">
+      <i class="fas fa-home text-xl"></i>
+      <span>Home</span>
+    </button>
+    <button aria-label="Search" class="flex flex-col items-center text-sm hover:text-accent transition-colors">
+      <i class="fas fa-search text-xl"></i>
+      <span>Search</span>
+    </button>
+    <button aria-label="New Post" class="flex flex-col items-center text-sm hover:text-accent transition-colors" id="mobile-open-post-creation-btn">
+      <i class="fas fa-plus-circle text-xl"></i>
+      <span>Post</span>
+    </button>
+    <button aria-label="Notifications" class="flex flex-col items-center text-sm hover:text-accent transition-colors">
+      <i class="fas fa-bell text-xl"></i>
+      <span>Alerts</span>
+    </button>
+    <button aria-label="Profile" class="flex flex-col items-center text-sm hover:text-accent transition-colors" id="mobile-open-profile-btn">
+      <i class="fas fa-user text-xl"></i>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <script>
+    // Sample posts data with more entries
+    const postsForYou = [
+      {
+        id: 1,
+        user: { name: "Jane Doe", avatar: "https://randomuser.me/api/portraits/women/68.jpg", username: "janedoe" },
+        time: "2 hours ago",
+        content: "Just saw this amazing article on AI and hate speech detection! #AI #SocialGood",
+        image: "https://images.pexels.com/photos/3184299/pexels-photo-3184299.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=300",
+        likes: 24,
+        comments: ["Great article!", "Thanks for sharing!", "Very informative."],
+        shares: 3
+      },
+      {
+        id: 2,
+        user: { name: "John Smith", avatar: "https://randomuser.me/api/portraits/men/45.jpg", username: "johnsmith" },
+        time: "5 hours ago",
+        content: "Hate speech detection is crucial for safer online communities. Let's work together!",
+        image: null,
+        likes: 42,
+        comments: ["Absolutely agree.", "Important topic.", "We need more awareness."],
+        shares: 6
+      },
+      {
+        id: 4,
+        user: { name: "Emily Chen", avatar: "https://randomuser.me/api/portraits/women/22.jpg", username: "emilychen" },
+        time: "8 hours ago",
+        content: "Loving the new features on SocialDetect! Keep up the good work! #SocialMediaSafety",
+        image: "https://images.pexels.com/photos/3184435/pexels-photo-3184435.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=300",
+        likes: 31,
+        comments: ["Looks amazing!", "Great job!"],
+        shares: 4
+      },
+      {
+        id: 5,
+        user: { name: "Michael Lee", avatar: "https://randomuser.me/api/portraits/men/32.jpg", username: "michaellee" },
+        time: "1 day ago",
+        content: "Discussing digital ethics at a conference today. So important for our future! #DigitalEthics",
+        image: null,
+        likes: 19,
+        comments: ["Insightful!", "Thanks for sharing."],
+        shares: 2
+      }
+    ];
+
+    const postsFollowing = [
+      {
+        id: 3,
+        user: { name: "Alice Johnson", avatar: "https://randomuser.me/api/portraits/women/65.jpg", username: "alicej" },
+        time: "1 hour ago",
+        content: "Excited to share my new project on hate speech detection!",
+        image: null,
+        likes: 15,
+        comments: ["Good luck!", "Looking forward to it."],
+        shares: 1
+      },
+      {
+        id: 6,
+        user: { name: "David Park", avatar: "https://randomuser.me/api/portraits/men/56.jpg", username: "davidpark" },
+        time: "3 hours ago",
+        content: "Working on a safer online space with SocialDetect. #HateSpeechAwareness",
+        image: "https://images.pexels.com/photos/3184306/pexels-photo-3184306.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=300",
+        likes: 22,
+        comments: ["Great initiative!", "Keep it up!"],
+        shares: 3
+      }
+    ];
+
+    // Render posts function
+    function renderPosts(posts) {
+      const feed = document.getElementById("feed");
+      const newPostsDiv = document.createElement('div');
+      newPostsDiv.id = "newPosts";
+      newPostsDiv.className = "space-y-6";
+      
+      const createPostSection = `
+        <div>
+          <h3 class="text-lg font-semibold mb-4 text-secondary-dark">Create a New Post</h3>
+          <div id="newPostForm" class="space-y-4">
+            <textarea id="postContent" placeholder="What's on your mind?" rows="3" class="w-full border border-gray-300 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"></textarea>
+            <button id="submitPostBtn" class="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-6 rounded-lg transition-colors shadow-glow">Post</button>
+          </div>
+        </div>
+      `;
+      
+      feed.innerHTML = createPostSection;
+      feed.appendChild(newPostsDiv);
+      
+      posts.forEach(post => {
+        const article = document.createElement("article");
+        article.className = "bg-white border border-gray-200 rounded-lg shadow-glow p-4 max-w-xl mx-auto hover-scale transition-transform";
+        article.setAttribute('data-post-id', post.id);
+        article.innerHTML = `
+          <header class="flex items-center space-x-4 mb-4 cursor-pointer user-name" data-username="${post.user.username}">
+            <img src="${post.user.avatar}" alt="User avatar" class="w-12 h-12 rounded-full object-cover" />
+            <div>
+              <h3 class="font-semibold text-secondary-dark">${post.user.name}</h3>
+              <p class="text-sm text-gray-500">${post.time}</p>
+            </div>
+          </header>
+          <p class="text-secondary-dark mb-4">${post.content}</p>
+          ${post.image ? `<img src="${post.image}" alt="Post image" class="rounded-lg mb-4 max-h-60 w-full object-cover" />` : ""}
+          <footer class="flex items-center justify-between text-gray-600 text-sm mb-4">
+            <button class="flex items-center space-x-1 hover:text-primary transition-colors like-btn" data-post-id="${post.id}">
+              <i class="fas fa-heart"></i>
+              <span>${post.likes}</span>
+            </button>
+            <button class="flex items-center space-x-1 hover:text-primary transition-colors comment-btn" data-post-id="${post.id}">
+              <i class="fas fa-comment"></i>
+              <span>${post.comments.length}</span>
+            </button>
+            <button class="flex items-center space-x-1 hover:text-primary transition-colors share-btn" data-post-id="${post.id}">
+              <i class="fas fa-share"></i>
+              <span>${post.shares}</span>
+            </button>
+          </footer>
+          <section class="comment-section border-t border-gray-200 pt-2" style="display: none;">
+            <ul class="comment-list mb-2 max-h-32 overflow-auto text-sm text-gray-700">
+              ${post.comments.map(comment => `<li class="mb-1">${comment}</li>`).join('')}
+            </ul>
+            <div class="flex space-x-2">
+              <input type="text" placeholder="Add a comment..." class="comment-input flex-1 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary" />
+              <button class="bg-primary text-white px-3 rounded comment-submit-btn">Post</button>
+            </div>
+          </section>
+        `;
+        newPostsDiv.appendChild(article);
+      });
+      attachPostEventListeners();
+      attachFormEventListener();
+    }
+
+    // Attach event listeners to posts
+    function attachPostEventListeners() {
+      // Remove existing event listeners to prevent duplicates
+      document.querySelectorAll(".like-btn").forEach(btn => {
+        btn.removeEventListener("click", handleLike);
+        btn.addEventListener("click", handleLike);
+      });
+
+      document.querySelectorAll(".comment-btn").forEach(btn => {
+        btn.removeEventListener("click", handleCommentToggle);
+        btn.addEventListener("click", handleCommentToggle);
+      });
+
+      document.querySelectorAll(".share-btn").forEach(btn => {
+        btn.removeEventListener("click", handleShare);
+        btn.addEventListener("click", handleShare);
+      });
+
+      document.querySelectorAll(".user-name").forEach(el => {
+        el.removeEventListener("click", handleUserNameClick);
+        el.addEventListener("click", handleUserNameClick);
+      });
+
+      document.querySelectorAll(".comment-submit-btn").forEach(btn => {
+        btn.removeEventListener("click", handleCommentSubmit);
+        btn.addEventListener("click", handleCommentSubmit);
+      });
+
+      document.querySelectorAll(".comment-input").forEach(input => {
+        input.removeEventListener("keypress", handleCommentKeypress);
+        input.addEventListener("keypress", handleCommentKeypress);
+      });
+    }
+
+    function handleLike() {
+      const icon = this.querySelector("i");
+      const countSpan = this.querySelector("span");
+      let count = parseInt(countSpan.textContent);
+      if (icon.classList.contains("liked")) {
+        icon.classList.remove("liked", "text-primary");
+        count--;
+      } else {
+        icon.classList.add("liked", "text-primary");
+        count++;
+      }
+      countSpan.textContent = count;
+    }
+
+    function handleCommentToggle() {
+      const article = this.closest("article");
+      const commentSection = article.querySelector(".comment-section");
+      commentSection.style.display = commentSection.style.display === "none" || !commentSection.style.display ? "block" : "none";
+      article.querySelector(".comment-input").focus();
+    }
+
+    function handleShare() {
+      alert("Share functionality coming soon!");
+    }
+
+    function handleUserNameClick() {
+      openUserProfileModal(this.dataset.username);
+    }
+
+    function handleCommentSubmit() {
+      const article = this.closest("article");
+      const input = article.querySelector(".comment-input");
+      const commentList = article.querySelector(".comment-list");
+      const postId = parseInt(article.getAttribute("data-post-id"));
+      const commentText = input.value.trim();
+
+      if (!commentText) {
+        input.focus();
+        return;
+      }
+
+      // Check for hate speech in the comment
+      const isOffensive = detectHateSpeech(commentText);
+      if (isOffensive) {
+        console.log('Comment is offensive, blocking');
+        alert('Comment cannot be posted since it\'s offensive/hate speech.');
+        input.value = '';
+        return;
+      }
+
+      let post = postsForYou.find(p => p.id === postId) || postsFollowing.find(p => p.id === postId);
+      if (!post) {
+        // Handle dynamically added posts
+        post = { id: postId, comments: [] };
+      }
+      post.comments.push(commentText);
+      const li = document.createElement("li");
+      li.className = "mb-1";
+      li.textContent = commentText;
+      commentList.appendChild(li);
+      const commentBtn = article.querySelector(".comment-btn span");
+      commentBtn.textContent = post.comments.length;
+      input.value = "";
+      console.log('Comment added to post ID:', postId);
+    }
+
+    function handleCommentKeypress(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        this.nextElementSibling.click();
+      }
+    }
+
+    function openUserProfileModal(username) {
+      document.getElementById("user-profile-modal").classList.remove("hidden");
+    }
+
+    document.getElementById("close-profile-btn").addEventListener("click", () => {
+      document.getElementById("user-profile-modal").classList.add("hidden");
+    });
+
+    document.getElementById("open-post-creation-btn").addEventListener("click", () => {
+      document.getElementById("newPostForm").scrollIntoView({ behavior: "smooth" });
+      document.getElementById("postContent").focus();
+    });
+
+    document.getElementById("mobile-open-post-creation-btn").addEventListener("click", () => {
+      document.getElementById("newPostForm").scrollIntoView({ behavior: "smooth" });
+      document.getElementById("postContent").focus();
+    });
+
+    document.getElementById("mobile-open-profile-btn").addEventListener("click", () => {
+      document.getElementById("user-profile-modal").classList.remove("hidden");
+    });
+
+    document.querySelectorAll(".follow-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (btn.textContent === "Follow") {
+          btn.textContent = "Following";
+          btn.classList.add("text-secondary-peach");
+          btn.classList.remove("text-primary");
+        } else {
+          btn.textContent = "Follow";
+          btn.classList.remove("text-secondary-peach");
+          btn.classList.add("text-primary");
+        }
+      });
+    });
+
+    const tabForYou = document.getElementById('tab-for-you');
+    const tabFollowing = document.getElementById('tab-following');
+
+    tabForYou.addEventListener('click', () => {
+      tabForYou.classList.add('border-primary', 'text-primary');
+      tabForYou.classList.remove('border-transparent');
+      tabFollowing.classList.remove('border-primary', 'text-primary');
+      tabFollowing.classList.add('border-transparent');
+      renderPosts(postsForYou);
+    });
+
+    tabFollowing.addEventListener('click', () => {
+      tabFollowing.classList.add('border-primary', 'text-primary');
+      tabFollowing.classList.remove('border-transparent');
+      tabForYou.classList.remove('border-primary', 'text-primary');
+      tabForYou.classList.add('border-transparent');
+      renderPosts(postsFollowing);
+    });
+
+    // Hate Speech Detection Logic
+    const offensiveWords = [
+      'hate', 'kill', 'die', 'whore', 'stupid', 'fuck', 'shit', 'bitch', 'asshole', 'damn',
+      'hell', 'idiot', 'faggot', 'nigger', 'slut', 'cunt', 'bastard', 'dick', 'pussy', 'retard',
+      'trash', 'worthless', 'ugly', 'fat', 'loser', 'damn', 'fucking', 'ass', 'kys', 'moron',
+      'dumb', 'freak', 'pig', 'scum', 'homo', 'cock', 'prick', 'twat', 'wanker', 'skank',
+      'chink', 'gook', 'spic', 'kike', 'dyke', 'tramp', 'whorebag', 'fucker', 'motherfucker',
+      'asswipe', 'dipshit', 'shithead', 'piss', 'crap', 'bullshit', 'fucked', 'shitter',
+      'arse', 'arsehole', 'bitchy', 'cocksucker', 'douche', 'douchebag', 'shitty', 'nazi',
+      'racist', 'sexist', 'pedophile', 'pervert', 'creep', 'jerk', 'loser', 'freakshow',
+      'dumbass', 'jackass', 'butthole', 'asshat', 'fuckface', 'shitface', 'cum', 'jizz',
+      'screw', 'bang', 'rape', 'molest', 'abuse', 'violated', 'tard', 'fag', 'queer'
+    ];
+
+    function detectHateSpeech(text) {
+      console.log('Detecting hate speech for text:', text);
+      try {
+        // Convert text to lowercase and split into words
+        const words = text.toLowerCase().split(/\s+/);
+        console.log('Words after splitting:', words);
+        // Check if any word in the text matches an offensive word
+        const foundOffensiveWords = words.filter(word => offensiveWords.includes(word));
+        const isOffensive = foundOffensiveWords.length > 0;
+        console.log('Found offensive words:', foundOffensiveWords);
+        console.log('Is offensive:', isOffensive);
+        return isOffensive;
+      } catch (error) {
+        console.error('Error during detection:', error);
+        alert('An error occurred while detecting hate speech. Post will be allowed.');
+        return false; // Allow post if detection fails
+      }
+    }
+
+    function attachFormEventListener() {
+      const submitBtn = document.getElementById('submitPostBtn');
+      submitBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('Submit button clicked');
+        const postContent = document.getElementById('postContent').value;
+
+        if (!postContent) {
+          console.log('No content entered');
+          alert('Please write something to post!');
+          return;
+        }
+
+        console.log('Post content:', postContent);
+        const isOffensive = detectHateSpeech(postContent);
+        if (isOffensive) {
+          console.log('Post is offensive, blocking');
+          alert('Comment/post cannot be posted since it\'s offensive/hate speech.');
+        } else {
+          console.log('Post is not offensive, adding to UI');
+          const newPostId = Date.now(); // Unique ID for new post
+          const newPostDiv = document.createElement('div');
+          newPostDiv.className = 'bg-white border border-gray-200 rounded-lg shadow-glow p-4 max-w-xl mx-auto mb-4 hover-scale transition-transform';
+          newPostDiv.setAttribute('data-post-id', newPostId); // Set post ID for new post
+          newPostDiv.innerHTML = `
+            <header class="flex items-center space-x-4 mb-4">
+              <img src="https://randomuser.me/api/portraits/men/99.jpg" alt="User avatar" class="w-12 h-12 rounded-full object-cover"/>
+              <div>
+                <h3 class="font-semibold text-secondary-dark">Current User</h3>
+                <p class="text-sm text-gray-500">Just now</p>
+              </div>
+            </header>
+            <p class="text-secondary-dark mb-4">${postContent}</p>
+            <footer class="flex items-center justify-between text-gray-600 text-sm mb-4">
+              <button class="flex items-center space-x-1 hover:text-primary transition-colors like-btn" data-post-id="${newPostId}">
+                <i class="fas fa-heart"></i>
+                <span>0</span>
+              </button>
+              <button class="flex items-center space-x-1 hover:text-primary transition-colors comment-btn" data-post-id="${newPostId}">
+                <i class="fas fa-comment"></i>
+                <span>0</span>
+              </button>
+              <button class="flex items-center space-x-1 hover:text-primary transition-colors share-btn" data-post-id="${newPostId}">
+                <i class="fas fa-share"></i>
+                <span>0</span>
+              </button>
+            </footer>
+            <section class="comment-section border-t border-gray-200 pt-2" style="display: none;">
+              <ul class="comment-list mb-2 max-h-32 overflow-auto text-sm text-gray-700"></ul>
+              <div class="flex space-x-2">
+                <input type="text" placeholder="Add a comment..." class="comment-input flex-1 border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary" />
+                <button class="bg-primary text-white px-3 rounded comment-submit-btn">Post</button>
+              </div>
+            </section>
+          `;
+          const newPostsDiv = document.getElementById('newPosts');
+          newPostsDiv.prepend(newPostDiv);
+          document.getElementById('postContent').value = '';
+          attachPostEventListeners();
+          console.log('Post added successfully with ID:', newPostId);
+        }
+      });
+    }
+
+    // Initialize with For You feed content
+    renderPosts(postsForYou);
+  </script>
+</body>
+</html>
